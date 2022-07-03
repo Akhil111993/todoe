@@ -9,7 +9,7 @@ import 'models/data_list_provider.dart';
 
 void main() async {
   await Hive.initFlutter();
-  // await Hive.openBox('todoe_db');
+  await Hive.openBox('todoe_db');
   await SystemChrome.setPreferredOrientations(
     [DeviceOrientation.portraitUp],
   );

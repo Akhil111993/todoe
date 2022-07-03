@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:todoe/models/data_list_provider.dart';
@@ -13,14 +14,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // final _controller = ScrollController();
   bool dataRetrieved = false;
   final ItemScrollController itemScrollController = ItemScrollController();
 
   @override
   void dispose() {
     Provider.of<DataListProvider>(context).dispose();
-    // Hive.close;
+    Hive.close;
     super.dispose();
   }
 
