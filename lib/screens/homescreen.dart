@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:todoe/models/data.dart';
 import 'package:todoe/models/data_list_provider.dart';
 
 import '../widgets/add_todo.dart';
@@ -14,35 +15,27 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool dataRetrieved = false;
   final ItemScrollController itemScrollController = ItemScrollController();
 
   @override
   void dispose() {
-    Provider.of<DataListProvider>(context).dispose();
     Hive.close;
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
     super.didChangeDependencies();
-    var provider = Provider.of<DataListProvider>(context);
-    // if (dataRetrieved) {
-    //   provider.retrieveDataList();
-    //   dataRetrieved = true;
-    // }
-    provider.addListener(() {
-      if (provider.itemAdded && provider.dataList.length > 2) {
-        itemScrollController.scrollTo(
-            index: provider.dataList.length - 1,
-            duration: const Duration(seconds: 1),
-            curve: Curves.easeInOutCubic);
-      }
-      if (provider.itemAdded) {
-        // provider.saveDataList();
-      }
-    });
+    Provider.of<DataListProvider>(context)
+        .setItemLength(DataListProvider.getDataList().values.length);
+
+    if (Provider.of<DataListProvider>(context).isItemAdded()) {
+      itemScrollController.scrollTo(
+          index: DataListProvider.getDataList().values.length,
+          duration: const Duration(seconds: 2),
+          curve: Curves.easeInOutCubic);
+    }
   }
 
   @override
@@ -89,8 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Text(
                     Provider.of<DataListProvider>(context)
-                            .dataList
-                            .length
+                            .getItemLength()
                             .toString() +
                         ' Tasks',
                     style: const TextStyle(
@@ -112,36 +104,40 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   color: Colors.white,
                 ),
-                // Provider.of<DataListProvider>(context)
-                //     .dataList[index]
-                //     .title,
-                child: Consumer<DataListProvider>(
-                  builder:
-                      (BuildContext context, providerValue, Widget? child) {
+                child: ValueListenableBuilder<Box<Data>>(
+                  valueListenable: DataListProvider.getDataList().listenable(),
+                  builder: (context, box, _) {
+                    final dataList = box.values.toList().cast<Data>();
                     return ScrollablePositionedList.builder(
                       itemScrollController: itemScrollController,
-                      itemCount: providerValue.dataList.length,
-                      itemBuilder: (context, index) {
-                        return CheckboxListTile(
+                      itemCount: dataList.length,
+                      itemBuilder: (context, index) => InkWell(
+                        onLongPress: () {
+                          box.deleteAt(index);
+                          Provider.of<DataListProvider>(context, listen: false)
+                              .decrementLength();
+                        },
+                        child: CheckboxListTile(
                           title: Text(
-                            providerValue.dataList[index].title,
+                            dataList[index].title,
                             style: TextStyle(
                                 fontSize: 19.0,
-                                decoration:
-                                    providerValue.dataList[index].isChecked
-                                        ? TextDecoration.lineThrough
-                                        : TextDecoration.none),
+                                decoration: dataList[index].isChecked
+                                    ? TextDecoration.lineThrough
+                                    : TextDecoration.none),
                           ),
                           activeColor: Colors.red,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20.0,
                           ),
-                          value: providerValue.dataList[index].isChecked,
+                          value: dataList[index].isChecked,
                           onChanged: (isCheckChanged) {
-                            providerValue.onCheckChange(isCheckChanged!, index);
+                            Data data = Data(dataList[index].title);
+                            data.isChecked = isCheckChanged ?? false;
+                            box.putAt(index, data);
                           },
-                        );
-                      },
+                        ),
+                      ),
                     );
                   },
                 ),

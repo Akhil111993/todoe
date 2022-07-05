@@ -1,44 +1,34 @@
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 import 'package:todoe/models/data.dart';
 
-class DataListProvider with ChangeNotifier {
-  final List<Data> _dataList = [];
-  List<Data> get dataList => _dataList;
-  bool itemAdded = false;
+class DataListProvider extends ChangeNotifier {
+  int _itemLength = 0;
+  bool _isItemAdded = false;
 
-  addData(String title) {
-    Data data = Data(title);
-    _dataList.add(data);
-    itemAdded = true;
+  static Box<Data> getDataList() => Hive.box<Data>('todoe_db');
+
+  void setItemLength(int itemLength) {
+    _itemLength = itemLength;
+  }
+
+  int getItemLength() {
+    return _itemLength;
+  }
+
+  bool isItemAdded() {
+    return _isItemAdded;
+  }
+
+  void incrementLength() {
+    _itemLength++;
+    _isItemAdded = true;
     notifyListeners();
   }
 
-  removeData(int index) {
-    _dataList.removeAt(index);
+  void decrementLength() {
+    _itemLength--;
+    _isItemAdded = false;
     notifyListeners();
   }
-
-  onCheckChange(bool isCheckChanged, int index) {
-    _dataList[index].isChecked = isCheckChanged;
-    itemAdded = false;
-    notifyListeners();
-  }
-
-  // saveDataList() async {
-  //   var box = await Hive.openBox('todoe_db');
-  //   await box.put('intArray', [1, 2, 3, 3]);
-  //   print('save data list');
-  // }
-  //
-  // retrieveDataList() async {
-  //   var box = Hive.box('todoe_db');
-  //   _dataList = box.get('dataList') ?? [];
-  //   print('retrieve data list');
-  //   print('retrieve data list' + box.get('intArray'));
-  // }
-  //
-  // deleteDataList() async {
-  //   var box = Hive.box('todoe_db');
-  //   await box.delete('dataList');
-  // }
 }

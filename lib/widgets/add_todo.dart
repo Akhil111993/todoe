@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/data.dart';
 import '../models/data_list_provider.dart';
 
 class AddToDo extends StatefulWidget {
@@ -58,9 +59,11 @@ class _AddToDoState extends State<AddToDo> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Provider.of<DataListProvider>(context, listen: false)
-                      .addData(_textEditingController.text);
+                  DataListProvider.getDataList()
+                      .add(Data(_textEditingController.text));
                   Navigator.pop(context);
+                  Provider.of<DataListProvider>(context, listen: false)
+                      .incrementLength();
                 },
                 child: const Text(
                   'ADD',
